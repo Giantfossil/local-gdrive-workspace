@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Standard-Zielverzeichnis und Mountpoint von `/srv/gdrive` auf `/srv/rclone/gdrive` umgestellt (`gdrive-mount.sh`, `gdrive-mount.service`, `deployment.sh` sowie Dokumentation).
+- Pfad zum Steuerungsskript in `gdrive-mount.service` auf `%h/.local/src/system/gdrive/gdrive-mount.sh` korrigiert.
+- Pfadangaben im Repository in `README.md` und `HOWTO.md` auf `~/.local/src/system/gdrive/` aktualisiert.
 
 ## [2026-08-27]
 

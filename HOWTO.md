@@ -85,7 +85,7 @@ rclone ls gdrive: --max-depth 1
 Das Deployment-Skript richtet den Mountpoint `/srv/rclone/gdrive` ein, verknüpft den Systemd-User-Service und startet den Mount:
 
 ```bash
-cd ~/.local/src/gdrive
+cd ~/.local/src/system/gdrive
 ./deployment.sh
 ```
 
@@ -103,13 +103,13 @@ cd ~/.local/src/gdrive
 
 ```bash
 # Mount im Hintergrund starten
-~/.local/src/gdrive/gdrive-mount.sh daemon
+~/.local/src/system/gdrive/gdrive-mount.sh daemon
 
 # Mount-Status anzeigen
-~/.local/src/gdrive/gdrive-mount.sh status
+~/.local/src/system/gdrive/gdrive-mount.sh status
 
 # Sauber aushängen
-~/.local/src/gdrive/gdrive-mount.sh stop
+~/.local/src/system/gdrive/gdrive-mount.sh stop
 ```
 
 ### Steuerung über Systemd (Autostart beim Login)
@@ -129,7 +129,7 @@ journalctl --user -u gdrive-mount.service -f
 
 ## 6. Batch-Dokumentenkonvertierung (`while_convert`)
 
-Mit dem Werkzeug [`local/bin/while_convert`](file:///home/giant/.local/src/gdrive/local/bin/while_convert) können exportierte `.docx`-Dateien aus Google Drive automatisiert in `.odt` umgewandelt werden:
+Mit dem Werkzeug [`local/bin/while_convert`](file:///home/giant/.local/src/system/gdrive/local/bin/while_convert) können exportierte `.docx`-Dateien aus Google Drive automatisiert in `.odt` umgewandelt werden:
 
 ```bash
 # Aktuelles Verzeichnis konvertieren

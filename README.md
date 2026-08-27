@@ -41,7 +41,7 @@ Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller al
 
 ```bash
 # In das Repository-Verzeichnis wechseln und Bereitstellung ausführen
-cd ~/.local/src/gdrive
+cd ~/.local/src/system/gdrive
 ./deployment.sh
 ```
 
@@ -51,7 +51,7 @@ Hierbei wird:
 3. Die Hilfswerkzeuge (`local/bin/while_convert`) nach `~/.local/bin/` verlinkt.
 4. Der Systemd-User-Service registriert, aktiviert und gestartet.
 
-Für eine detaillierte Anleitung zur Rclone-Konfiguration (`rclone config`) und Google API Anmeldedaten siehe [`HOWTO.md`](file:///home/giant/.local/src/gdrive/HOWTO.md).
+Für eine detaillierte Anleitung zur Rclone-Konfiguration (`rclone config`) und Google API Anmeldedaten siehe [`HOWTO.md`](file:///home/giant/.local/src/system/gdrive/HOWTO.md).
 
 ### Manuelle Skript-Steuerung
 
@@ -106,4 +106,4 @@ Folgende Umgebungsvariablen können übergeben oder im Service angepasst werden:
 
 ## 5. Lizenz
 
-Dieses Projekt ist unter der [MIT-Lizenz](file:///home/giant/.local/src/gdrive/LICENSE) lizenziert.
+Dieses Projekt ist unter der [MIT-Lizenz](file:///home/giant/.local/src/system/gdrive/LICENSE) lizenziert.

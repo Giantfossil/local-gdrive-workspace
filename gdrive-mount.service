@@ -6,8 +6,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/src/gdrive/gdrive-mount.sh start
-ExecStop=%h/.local/src/gdrive/gdrive-mount.sh stop
+ExecStart=%h/.local/src/system/gdrive/gdrive-mount.sh start
+ExecStop=%h/.local/src/system/gdrive/gdrive-mount.sh stop
 Restart=on-failure
 RestartSec=10
 TimeoutStopSec=20
