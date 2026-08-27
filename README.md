@@ -1,12 +1,12 @@
 # Google Drive Rclone Mount (`/srv/gdrive`)
 
-High-Performance FUSE-Mount für Google Drive (`gdrive:`) mit optimiertem On-Demand VFS-Caching und Latenz-Tuning.
+High-Performance FUSE-Mount für Google Drive (`gdrive:`) mit optimiertem On-Demand VFS-Caching, Latenz-Tuning und automatisierter Systemd-Bereitstellung.
 
 ---
 
 ## 1. Architektur & Performance-Konzept
 
-Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller als das Google Drive Webinterface) im lokalen Dateisystem bereitzustellen und Dateien erst beim tatsächlichen Zugriff stückweise (chunk-basiert) aus der Cloud nachzuladen.
+Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller als das Google Drive Webinterface) im lokalen Dateisystem unter `/srv/gdrive` bereitzustellen und Dateien erst beim tatsächlichen Zugriff stückweise (chunk-basiert) aus der Cloud nachzuladen.
 
 ### Optimierungs-Parameter
 
@@ -19,16 +19,32 @@ Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller al
 
 ---
 
-## 2. Komponenten
+## 2. Komponentenübersicht
 
-- **`gdrive-mount.sh`**: Steuerungs-Skript für Start (Vordergrund/Daemon), Stop, Status und automatische Bereinigung (`fusermount3`).
-- **`gdrive-mount.service`**: Systemd User Service Unit für automatischen Start beim Login / Systemstart.
+| Datei | Zweck |
+| :--- | :--- |
+| **`deployment.sh`** | Vollautomatisches Setup- und Deployment-Skript für Mountpoint und Systemd-Service |
+| **`gdrive-mount.sh`** | Ausführbares Steuerungsskript für Start (Vordergrund/Daemon), Stop, Status und Bereinigung |
+| **`gdrive-mount.service`** | Systemd User Service Unit für automatischen Start beim Login / Systemstart |
+| **`HOWTO.md`** | Detaillierte Schritt-für-Schritt-Anleitung inkl. `rclone config` und Google Cloud OAuth Setup |
+| **`CHANGELOG.md`** | Chronologisches Änderungsprotokoll (Deltas) |
+| **`NOTE.md`** | Zukünftige Aufgaben und Optimierungsideen |
 
 ---
 
-## 3. Verwendung
+## 3. Schnelleinstieg & Bereitstellung
 
-### Manuelle Steuerung
+### Automatische Installation
+
+```bash
+# In das Repository-Verzeichnis wechseln und Bereitstellung ausführen
+cd ~/.local/src/gdrive
+./deployment.sh
+```
+
+Für eine detaillierte Anleitung zur Rclone-Konfiguration (`rclone config`) und Google API Anmeldedaten siehe [`HOWTO.md`](file:///home/giant/.local/src/gdrive/HOWTO.md).
+
+### Manuelle Skript-Steuerung
 
 ```bash
 # Im Hintergrund als Daemon starten
@@ -41,19 +57,13 @@ Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller al
 ./gdrive-mount.sh stop
 ```
 
-### Systemd User Service Einrichten
+### Systemd User Service Verwaltung
 
 ```bash
-# Service-Datei verlinken
-mkdir -p ~/.config/systemd/user
-ln -sf /home/giant/.local/src/gdrive/gdrive-mount.service ~/.config/systemd/user/
-
-# Service aktivieren und starten
-systemctl --user daemon-reload
-systemctl --user enable --now gdrive-mount.service
-
-# Status und Logs prüfen
+# Service-Status abfragen
 systemctl --user status gdrive-mount.service
+
+# Live-Logs einsehen
 journalctl --user -u gdrive-mount.service -f
 ```
 
