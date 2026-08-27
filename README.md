@@ -28,6 +28,7 @@ Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller al
 | **`gdrive-mount.service`** | Systemd User Service Unit für automatischen Start beim Login / Systemstart |
 | **`local/bin/while_convert`** | Batch-Konverter für Office-Dokumente (`.docx` zu `.odt` via headless LibreOffice) |
 | **`HOWTO.md`** | Detaillierte Schritt-für-Schritt-Anleitung inkl. `rclone config` und Google Cloud OAuth Setup |
+| **`LICENSE`** | MIT-Lizenzdatei |
 | **`CHANGELOG.md`** | Chronologisches Änderungsprotokoll (Deltas) |
 | **`NOTE.md`** | Zukünftige Aufgaben und Optimierungsideen |
 
@@ -99,3 +100,9 @@ Folgende Umgebungsvariablen können übergeben oder im Service angepasst werden:
 | `RCLONE_CACHE_DIR` | `~/.cache/rclone/gdrive` | Lokaler VFS-Cache-Ordner |
 | `RCLONE_LOG_FILE` | `~/.cache/rclone/gdrive.log` | Pfad zur Logdatei |
 | `RCLONE_LOG_LEVEL` | `NOTICE` | Log-Level (`DEBUG`, `INFO`, `NOTICE`, `ERROR`) |
+
+---
+
+## 5. Lizenz
+
+Dieses Projekt ist unter der [MIT-Lizenz](file:///home/giant/.local/src/gdrive/LICENSE) lizenziert.

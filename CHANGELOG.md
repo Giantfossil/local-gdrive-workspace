@@ -11,4 +11,5 @@ All notable changes to this project will be documented in this file.
 - Systemd User Service Unit `gdrive-mount.service` für Mount-Pfad `/srv/gdrive` erstellt.
 - Automatisches Deployment-Skript `deployment.sh` für Installation, Verlinkung und Verwaltung bereitgestellt.
 - Ausführliche Anleitung in `HOWTO.md` für Google Cloud OAuth, `rclone config` und Dokumenten-Konvertierung hinzugefügt.
+- MIT-Lizenzdatei `LICENSE` hinzugefügt.
 - Architektur- und Komponentendokumentation in `README.md`, `CHANGELOG.md` und `NOTE.md` strukturiert.
