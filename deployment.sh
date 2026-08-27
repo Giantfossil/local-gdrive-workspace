@@ -9,6 +9,7 @@ MOUNT_POINT="${RCLONE_MOUNT_POINT:-/srv/gdrive}"
 REMOTE_NAME="${RCLONE_REMOTE:-gdrive:}"
 SERVICE_NAME="gdrive-mount.service"
 USER_SYSTEMD_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+USER_BIN_DIR="${HOME}/.local/bin"
 
 print_header() {
     echo "============================================================"
@@ -17,7 +18,7 @@ print_header() {
 }
 
 check_dependencies() {
-    echo "[1/5] Checking dependencies..."
+    echo "[1/6] Checking dependencies..."
     local missing=()
     for cmd in rclone fusermount3 systemctl; do
         if ! command -v "$cmd" &>/dev/null; then
@@ -37,7 +38,7 @@ check_dependencies() {
 }
 
 check_rclone_remote() {
-    echo "[2/5] Checking rclone remote configuration..."
+    echo "[2/6] Checking rclone remote configuration..."
     local remote_clean="${REMOTE_NAME%:}"
     if rclone listremotes | grep -q "^${remote_clean}:"; then
         echo "      Remote '${REMOTE_NAME}' is configured."
@@ -53,7 +54,7 @@ check_rclone_remote() {
 }
 
 setup_mountpoint() {
-    echo "[3/5] Setting up mount directory: $MOUNT_POINT"
+    echo "[3/6] Setting up mount directory: $MOUNT_POINT"
     if [[ ! -d "$MOUNT_POINT" ]]; then
         if mkdir -p "$MOUNT_POINT" 2>/dev/null; then
             echo "      Directory created: $MOUNT_POINT"
@@ -75,8 +76,24 @@ setup_mountpoint() {
     fi
 }
 
+install_user_binaries() {
+    echo "[4/6] Installing user helper utilities to $USER_BIN_DIR..."
+    mkdir -p "$USER_BIN_DIR"
+    if [[ -d "$SCRIPT_DIR/local/bin" ]]; then
+        for bin_file in "$SCRIPT_DIR/local/bin"/*; do
+            if [[ -f "$bin_file" ]]; then
+                local bin_name
+                bin_name="$(basename "$bin_file")"
+                chmod +x "$bin_file"
+                ln -sf "$bin_file" "$USER_BIN_DIR/$bin_name"
+                echo "      Symlinked utility: $USER_BIN_DIR/$bin_name -> $bin_file"
+            fi
+        done
+    fi
+}
+
 install_systemd_service() {
-    echo "[4/5] Installing systemd user service..."
+    echo "[5/6] Installing systemd user service..."
     mkdir -p "$USER_SYSTEMD_DIR"
     local service_src="$SCRIPT_DIR/$SERVICE_NAME"
     local service_dst="$USER_SYSTEMD_DIR/$SERVICE_NAME"
@@ -94,7 +111,7 @@ install_systemd_service() {
 }
 
 enable_and_start_service() {
-    echo "[5/5] Enabling and starting $SERVICE_NAME..."
+    echo "[6/6] Enabling and starting $SERVICE_NAME..."
     systemctl --user enable --now "$SERVICE_NAME"
     sleep 2
 
@@ -122,6 +139,17 @@ uninstall_service() {
         echo "Removed symlink: $service_dst"
     fi
 
+    if [[ -d "$SCRIPT_DIR/local/bin" ]]; then
+        for bin_file in "$SCRIPT_DIR/local/bin"/*; do
+            local bin_name
+            bin_name="$(basename "$bin_file")"
+            if [[ -L "$USER_BIN_DIR/$bin_name" ]]; then
+                rm -f "$USER_BIN_DIR/$bin_name"
+                echo "Removed symlink: $USER_BIN_DIR/$bin_name"
+            fi
+        done
+    fi
+
     systemctl --user daemon-reload
     echo "[SUCCESS] Uninstallation completed."
 }
@@ -131,9 +159,9 @@ usage() {
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  --install, -i     Run full deployment (dependencies, mountpoint, systemd service setup, enable & start)
-  --setup-only      Setup mountpoint and systemd symlink without starting service
-  --uninstall, -u   Stop, disable and remove systemd user service
+  --install, -i     Run full deployment (dependencies, mountpoint, helper scripts, systemd service setup, enable & start)
+  --setup-only      Setup mountpoint, helper scripts and systemd symlink without starting service
+  --uninstall, -u   Stop, disable and remove systemd user service and binary symlinks
   --status, -s      Show status of systemd service and mountpoint
   --help, -h        Show this help message
 
@@ -149,6 +177,7 @@ case "$action" in
         check_dependencies
         check_rclone_remote
         setup_mountpoint
+        install_user_binaries
         install_systemd_service
         enable_and_start_service
         ;;
@@ -157,6 +186,7 @@ case "$action" in
         check_dependencies
         check_rclone_remote
         setup_mountpoint
+        install_user_binaries
         install_systemd_service
         echo "[SUCCESS] Setup complete. Start service manually with: systemctl --user start $SERVICE_NAME"
         ;;

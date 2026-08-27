@@ -1,6 +1,6 @@
 # Google Drive Rclone Mount (`/srv/gdrive`)
 
-High-Performance FUSE-Mount für Google Drive (`gdrive:`) mit optimiertem On-Demand VFS-Caching, Latenz-Tuning und automatisierter Systemd-Bereitstellung.
+High-Performance FUSE-Mount für Google Drive (`gdrive:`) mit optimiertem On-Demand VFS-Caching, Latenz-Tuning, Dokumenten-Konvertierung und automatisierter Systemd-Bereitstellung.
 
 ---
 
@@ -21,11 +21,12 @@ Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller al
 
 ## 2. Komponentenübersicht
 
-| Datei | Zweck |
+| Datei / Pfad | Zweck |
 | :--- | :--- |
-| **`deployment.sh`** | Vollautomatisches Setup- und Deployment-Skript für Mountpoint und Systemd-Service |
+| **`deployment.sh`** | Vollautomatisches Setup- und Deployment-Skript für Mountpoint, Hilfsskripte und Systemd-Service |
 | **`gdrive-mount.sh`** | Ausführbares Steuerungsskript für Start (Vordergrund/Daemon), Stop, Status und Bereinigung |
 | **`gdrive-mount.service`** | Systemd User Service Unit für automatischen Start beim Login / Systemstart |
+| **`local/bin/while_convert`** | Batch-Konverter für Office-Dokumente (`.docx` zu `.odt` via headless LibreOffice) |
 | **`HOWTO.md`** | Detaillierte Schritt-für-Schritt-Anleitung inkl. `rclone config` und Google Cloud OAuth Setup |
 | **`CHANGELOG.md`** | Chronologisches Änderungsprotokoll (Deltas) |
 | **`NOTE.md`** | Zukünftige Aufgaben und Optimierungsideen |
@@ -42,6 +43,12 @@ cd ~/.local/src/gdrive
 ./deployment.sh
 ```
 
+Hierbei wird:
+1. Geprüft, ob `rclone`, `fuse3` und das Remote `gdrive:` eingerichtet sind.
+2. Der Mountpunkt `/srv/gdrive` angelegt und konfiguriert.
+3. Die Hilfswerkzeuge (`local/bin/while_convert`) nach `~/.local/bin/` verlinkt.
+4. Der Systemd-User-Service registriert, aktiviert und gestartet.
+
 Für eine detaillierte Anleitung zur Rclone-Konfiguration (`rclone config`) und Google API Anmeldedaten siehe [`HOWTO.md`](file:///home/giant/.local/src/gdrive/HOWTO.md).
 
 ### Manuelle Skript-Steuerung
@@ -55,6 +62,18 @@ Für eine detaillierte Anleitung zur Rclone-Konfiguration (`rclone config`) und 
 
 # Aushängen
 ./gdrive-mount.sh stop
+```
+
+### Dokumenten-Konvertierung (`while_convert`)
+
+Konvertiert rekursiv alle `.docx`-Dateien (z. B. aus Google Drive Exporten) im Zielordner in `.odt` und löscht das Original nur bei erfolgreicher Erstellung:
+
+```bash
+# Aktuellen Ordner scannen
+while_convert
+
+# Bestimmten Pfad (z. B. Google Drive Ordner) scannen
+while_convert /srv/gdrive/Dokumente
 ```
 
 ### Systemd User Service Verwaltung

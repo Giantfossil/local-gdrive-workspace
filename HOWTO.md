@@ -127,7 +127,23 @@ journalctl --user -u gdrive-mount.service -f
 
 ---
 
-## 6. Fehlerbehebung (Troubleshooting)
+## 6. Batch-Dokumentenkonvertierung (`while_convert`)
+
+Mit dem Werkzeug [`local/bin/while_convert`](file:///home/giant/.local/src/gdrive/local/bin/while_convert) können exportierte `.docx`-Dateien aus Google Drive automatisiert in `.odt` umgewandelt werden:
+
+```bash
+# Aktuelles Verzeichnis konvertieren
+while_convert
+
+# Bestimmten Ordner konvertieren
+while_convert /srv/gdrive/Buero
+```
+
+Das Skript prüft vor dem Löschen der Originaldatei, ob die erzeugte `.odt`-Datei erfolgreich und nicht leer ist.
+
+---
+
+## 7. Fehlerbehebung (Troubleshooting)
 
 ### Problem: Mountpoint `/srv/gdrive` hat keine Schreibrechte
 Falls `/srv/gdrive` als `root` erstellt wurde:

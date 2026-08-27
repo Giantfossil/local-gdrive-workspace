@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# while_convert - Batch convert .docx files to .odt using headless LibreOffice
+# ==============================================================================
+set -euo pipefail
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [DIRECTORY]
+
+Recursively searches for all .docx files in DIRECTORY (default: current directory),
+converts them to .odt format using LibreOffice, and removes the original .docx
+only after verifying the generated .odt file is non-empty.
+
+Arguments:
+  DIRECTORY    Target directory to scan (default: .)
+
+Options:
+  -h, --help   Show this help message
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+fi
+
+if ! command -v libreoffice &>/dev/null; then
+    echo "[ERROR] 'libreoffice' is not installed or not in PATH." >&2
+    exit 1
+fi
+
+TARGET_DIR="${1:-.}"
+
+if [[ ! -d "$TARGET_DIR" ]]; then
+    echo "[ERROR] Directory '$TARGET_DIR' does not exist." >&2
+    exit 1
+fi
+
+find "$TARGET_DIR" -type f -name "*.docx" -print0 | while IFS= read -r -d '' docx; do
+    dir=$(dirname "$docx")
+    base=$(basename "$docx" .docx)
+    odt="$dir/$base.odt"
+
+    # Konvertierung ins selbe Verzeichnis
+    libreoffice --headless --convert-to odt "$docx" --outdir "$dir"
+
+    # Sicherheitsprüfung: Existiert die .odt und hat sie Inhalt (> 0 Byte)?
+    if [ -s "$odt" ]; then
+        rm -- "$docx"
+        echo "[OK] Konvertiert & gelöscht: $docx"
+    else
+        echo "[FEHLER] Konvertierung fehlgeschlagen für: $docx (Original bleibt erhalten)" >&2
+    fi
+done
