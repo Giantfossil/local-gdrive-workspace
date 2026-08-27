@@ -1,0 +1,49 @@
+# ==============================================================================
+# System Requirements & Dependencies for Google Drive Mount (/srv/gdrive)
+# ==============================================================================
+#
+# Erforderliche Systempakete / Required System Packages:
+# - rclone       : Cloud-Storage-Synchronisation & FUSE-Mount Engine
+# - fuse3 / fuse : FUSE-Dateisystem-Treiber (fusermount3 / fusermount)
+# - systemd      : Service-Management für Autostart (systemctl --user)
+# - libreoffice  : Headless-Konvertierung von Dokumenten (.docx -> .odt via while_convert)
+# - coreutils    : Standard POSIX-Tools (bash, mkdir, ln, chmod, chown, grep, find)
+#
+# ==============================================================================
+# Installation per Paketmanager / Installation by Package Manager
+# ==============================================================================
+
+# --- Arch Linux / EndeavourOS / Manjaro (pacman) ---
+sudo pacman -S --needed rclone fuse3 libreoffice-fresh
+
+# --- Debian / Ubuntu / Linux Mint / Pop!_OS (apt) ---
+sudo apt update
+sudo apt install -y rclone fuse3 libreoffice
+
+# --- Fedora / RHEL / CentOS / AlmaLinux / Rocky (dnf) ---
+sudo dnf install -y rclone fuse3 libreoffice
+
+# --- openSUSE Tumbleweed / Leap (zypper) ---
+sudo zypper install -y rclone fuse3 libreoffice
+
+# --- Alpine Linux (apk) ---
+sudo apk add rclone fuse3 libreoffice bash
+
+# --- macOS (Homebrew) ---
+brew install rclone libreoffice
+# Hinweis: FUSE auf macOS erfordert macFUSE (https://macfuse.github.io/)
+brew install --cask macfuse
+
+# ==============================================================================
+# Nachbereitung / Post-Installation
+# ==============================================================================
+#
+# 1. Rclone Remote einrichten:
+#    rclone config
+#
+# 2. Deployment & Autostart ausführen:
+#    ./deployment.sh
+#
+# 3. Optional: Zugriff für andere Benutzer / Docker (/etc/fuse.conf):
+#    user_allow_other
+# ==============================================================================

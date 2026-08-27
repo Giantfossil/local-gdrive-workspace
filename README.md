@@ -28,6 +28,7 @@ Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller al
 | **`gdrive-mount.service`** | Systemd User Service Unit für automatischen Start beim Login / Systemstart |
 | **`local/bin/while_convert`** | Batch-Konverter für Office-Dokumente (`.docx` zu `.odt` via headless LibreOffice) |
 | **`HOWTO.md`** | Detaillierte Schritt-für-Schritt-Anleitung inkl. `rclone config` und Google Cloud OAuth Setup |
+| **`requirements.txt`** | Systemanforderungen und Installationsbefehle für Paketmanager (`pacman`, `apt`, `dnf`, etc.) |
 | **`LICENSE`** | MIT-Lizenzdatei |
 | **`CHANGELOG.md`** | Chronologisches Änderungsprotokoll (Deltas) |
 | **`NOTE.md`** | Zukünftige Aufgaben und Optimierungsideen |
