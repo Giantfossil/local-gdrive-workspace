@@ -1,4 +1,4 @@
-# Google Drive Rclone Mount (`/srv/gdrive`)
+# Google Drive Rclone Mount (`/srv/rclone/gdrive`)
 
 High-Performance FUSE-Mount für Google Drive (`gdrive:`) mit optimiertem On-Demand VFS-Caching, Latenz-Tuning, Dokumenten-Konvertierung und automatisierter Systemd-Bereitstellung.
 
@@ -6,7 +6,7 @@ High-Performance FUSE-Mount für Google Drive (`gdrive:`) mit optimiertem On-Dem
 
 ## 1. Architektur & Performance-Konzept
 
-Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller als das Google Drive Webinterface) im lokalen Dateisystem unter `/srv/gdrive` bereitzustellen und Dateien erst beim tatsächlichen Zugriff stückweise (chunk-basiert) aus der Cloud nachzuladen.
+Der Mount ist darauf ausgelegt, Ordnerstrukturen verzögerungsfrei (schneller als das Google Drive Webinterface) im lokalen Dateisystem unter `/srv/rclone/gdrive` bereitzustellen und Dateien erst beim tatsächlichen Zugriff stückweise (chunk-basiert) aus der Cloud nachzuladen.
 
 ### Optimierungs-Parameter
 
@@ -47,7 +47,7 @@ cd ~/.local/src/gdrive
 
 Hierbei wird:
 1. Geprüft, ob `rclone`, `fuse3` und das Remote `gdrive:` eingerichtet sind.
-2. Der Mountpunkt `/srv/gdrive` angelegt und konfiguriert.
+2. Der Mountpunkt `/srv/rclone/gdrive` angelegt und konfiguriert.
 3. Die Hilfswerkzeuge (`local/bin/while_convert`) nach `~/.local/bin/` verlinkt.
 4. Der Systemd-User-Service registriert, aktiviert und gestartet.
 
@@ -75,7 +75,7 @@ Konvertiert rekursiv alle `.docx`-Dateien (z. B. aus Google Drive Exporten) im Z
 while_convert
 
 # Bestimmten Pfad (z. B. Google Drive Ordner) scannen
-while_convert /srv/gdrive/Dokumente
+while_convert /srv/rclone/gdrive/Dokumente
 ```
 
 ### Systemd User Service Verwaltung
@@ -97,7 +97,7 @@ Folgende Umgebungsvariablen können übergeben oder im Service angepasst werden:
 | Variable | Standardwert | Beschreibung |
 | :--- | :--- | :--- |
 | `RCLONE_REMOTE` | `gdrive:` | Name des Rclone-Remotes |
-| `RCLONE_MOUNT_POINT` | `/srv/gdrive` | Lokaler Mount-Pfad |
+| `RCLONE_MOUNT_POINT` | `/srv/rclone/gdrive` | Lokaler Mount-Pfad |
 | `RCLONE_CACHE_DIR` | `~/.cache/rclone/gdrive` | Lokaler VFS-Cache-Ordner |
 | `RCLONE_LOG_FILE` | `~/.cache/rclone/gdrive.log` | Pfad zur Logdatei |
 | `RCLONE_LOG_LEVEL` | `NOTICE` | Log-Level (`DEBUG`, `INFO`, `NOTICE`, `ERROR`) |

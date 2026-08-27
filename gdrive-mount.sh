@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Configuration defaults (can be overridden via environment variables)
 REMOTE="${RCLONE_REMOTE:-gdrive:}"
-MOUNT_POINT="${RCLONE_MOUNT_POINT:-/srv/gdrive}"
+MOUNT_POINT="${RCLONE_MOUNT_POINT:-/srv/rclone/gdrive}"
 CACHE_DIR="${RCLONE_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/rclone/gdrive}"
 LOG_FILE="${RCLONE_LOG_FILE:-${XDG_CACHE_HOME:-$HOME/.cache}/rclone/gdrive.log}"
 LOG_LEVEL="${RCLONE_LOG_LEVEL:-NOTICE}"
@@ -154,7 +154,7 @@ Commands:
 
 Environment Variables:
   RCLONE_REMOTE       Remote name (default: gdrive:)
-  RCLONE_MOUNT_POINT  Mount directory (default: /srv/gdrive)
+  RCLONE_MOUNT_POINT  Mount directory (default: /srv/rclone/gdrive)
   RCLONE_CACHE_DIR    VFS cache directory (default: ~/.cache/rclone/gdrive)
   RCLONE_LOG_FILE     Path to log file (default: ~/.cache/rclone/gdrive.log)
   RCLONE_LOG_LEVEL    Log verbosity (default: NOTICE, options: DEBUG, INFO, NOTICE, ERROR)

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-08-28]
+
+### Changed
+- Standard-Zielverzeichnis und Mountpoint von `/srv/gdrive` auf `/srv/rclone/gdrive` umgestellt (`gdrive-mount.sh`, `gdrive-mount.service`, `deployment.sh` sowie Dokumentation).
+
 ## [2026-08-27]
 
 ### Added

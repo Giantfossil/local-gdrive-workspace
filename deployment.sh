@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# deployment.sh - Setup & Installation Script for Google Drive Mount (/srv/gdrive)
+# deployment.sh - Setup & Installation Script for Google Drive Mount (/srv/rclone/gdrive)
 # ==============================================================================
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MOUNT_POINT="${RCLONE_MOUNT_POINT:-/srv/gdrive}"
+MOUNT_POINT="${RCLONE_MOUNT_POINT:-/srv/rclone/gdrive}"
 REMOTE_NAME="${RCLONE_REMOTE:-gdrive:}"
 SERVICE_NAME="gdrive-mount.service"
 USER_SYSTEMD_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
@@ -13,7 +13,7 @@ USER_BIN_DIR="${HOME}/.local/bin"
 
 print_header() {
     echo "============================================================"
-    echo " Google Drive Rclone Mount Deployment (/srv/gdrive)"
+    echo " Google Drive Rclone Mount Deployment (/srv/rclone/gdrive)"
     echo "============================================================"
 }
 

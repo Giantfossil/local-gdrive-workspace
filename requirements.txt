@@ -1,5 +1,5 @@
 # ==============================================================================
-# System Requirements & Dependencies for Google Drive Mount (/srv/gdrive)
+# System Requirements & Dependencies for Google Drive Mount (/srv/rclone/gdrive)
 # ==============================================================================
 #
 # Erforderliche Systempakete / Required System Packages:

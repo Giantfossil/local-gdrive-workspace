@@ -82,7 +82,7 @@ rclone ls gdrive: --max-depth 1
 
 ## 4. Automatisches Deployment mit `deployment.sh`
 
-Das Deployment-Skript richtet den Mountpoint `/srv/gdrive` ein, verknüpft den Systemd-User-Service und startet den Mount:
+Das Deployment-Skript richtet den Mountpoint `/srv/rclone/gdrive` ein, verknüpft den Systemd-User-Service und startet den Mount:
 
 ```bash
 cd ~/.local/src/gdrive
@@ -136,7 +136,7 @@ Mit dem Werkzeug [`local/bin/while_convert`](file:///home/giant/.local/src/gdriv
 while_convert
 
 # Bestimmten Ordner konvertieren
-while_convert /srv/gdrive/Buero
+while_convert /srv/rclone/gdrive/Buero
 ```
 
 Das Skript prüft vor dem Löschen der Originaldatei, ob die erzeugte `.odt`-Datei erfolgreich und nicht leer ist.
@@ -145,20 +145,20 @@ Das Skript prüft vor dem Löschen der Originaldatei, ob die erzeugte `.odt`-Dat
 
 ## 7. Fehlerbehebung (Troubleshooting)
 
-### Problem: Mountpoint `/srv/gdrive` hat keine Schreibrechte
-Falls `/srv/gdrive` als `root` erstellt wurde:
+### Problem: Mountpoint `/srv/rclone/gdrive` hat keine Schreibrechte
+Falls `/srv/rclone/gdrive` als `root` erstellt wurde:
 ```bash
-sudo mkdir -p /srv/gdrive
-sudo chown -R $USER:$USER /srv/gdrive
+sudo mkdir -p /srv/rclone/gdrive
+sudo chown -R $USER:$USER /srv/rclone/gdrive
 ```
 
 ### Problem: Dateisystem blockiert beim Aushängen (Device busy)
 Falls Prozesse noch auf den Ordner zugreifen:
 ```bash
-fusermount3 -u -z /srv/gdrive
+fusermount3 -u -z /srv/rclone/gdrive
 ```
 
 ### Problem: Anderen Benutzern / Containern Zugriff gewähren (`--allow-other`)
-Damit Prozesse anderer Benutzer (z. B. Docker oder Webserver) auf `/srv/gdrive` zugreifen können:
+Damit Prozesse anderer Benutzer (z. B. Docker oder Webserver) auf `/srv/rclone/gdrive` zugreifen können:
 1. In `/etc/fuse.conf` die Zeile `#user_allow_other` einkommentieren (`user_allow_other`).
 2. Das Skript erkennt diesen Eintrag automatisch und hängt `--allow-other` an.
