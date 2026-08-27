@@ -93,18 +93,16 @@ install_user_binaries() {
 }
 
 install_systemd_service() {
-    echo "[5/6] Installing systemd user service..."
+    echo "[5/6] Installing systemd user services..."
     mkdir -p "$USER_SYSTEMD_DIR"
-    local service_src="$SCRIPT_DIR/$SERVICE_NAME"
-    local service_dst="$USER_SYSTEMD_DIR/$SERVICE_NAME"
-
-    if [[ ! -f "$service_src" ]]; then
-        echo "[ERROR] Service file $service_src not found." >&2
-        exit 1
-    fi
-
-    ln -sf "$service_src" "$service_dst"
-    echo "      Symlinked: $service_dst -> $service_src"
+    for srv in "$SCRIPT_DIR"/*.service; do
+        if [[ -f "$srv" ]]; then
+            local srv_name
+            srv_name="$(basename "$srv")"
+            ln -sf "$srv" "$USER_SYSTEMD_DIR/$srv_name"
+            echo "      Symlinked service: $USER_SYSTEMD_DIR/$srv_name -> $srv"
+        fi
+    done
 
     systemctl --user daemon-reload
     echo "      Systemd user daemon reloaded."
@@ -129,15 +127,21 @@ enable_and_start_service() {
 }
 
 uninstall_service() {
-    echo "Uninstalling $SERVICE_NAME..."
-    systemctl --user stop "$SERVICE_NAME" 2>/dev/null || true
-    systemctl --user disable "$SERVICE_NAME" 2>/dev/null || true
+    echo "Uninstalling services..."
+    systemctl --user stop gdrive-mount.service gdrive-convert.service 2>/dev/null || true
+    systemctl --user disable gdrive-mount.service gdrive-convert.service 2>/dev/null || true
 
-    local service_dst="$USER_SYSTEMD_DIR/$SERVICE_NAME"
-    if [[ -L "$service_dst" || -f "$service_dst" ]]; then
-        rm -f "$service_dst"
-        echo "Removed symlink: $service_dst"
-    fi
+    for srv in "$SCRIPT_DIR"/*.service; do
+        if [[ -f "$srv" ]]; then
+            local srv_name
+            srv_name="$(basename "$srv")"
+            local service_dst="$USER_SYSTEMD_DIR/$srv_name"
+            if [[ -L "$service_dst" || -f "$service_dst" ]]; then
+                rm -f "$service_dst"
+                echo "Removed symlink: $service_dst"
+            fi
+        fi
+    done
 
     if [[ -d "$SCRIPT_DIR/local/bin" ]]; then
         for bin_file in "$SCRIPT_DIR/local/bin"/*; do

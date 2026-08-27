@@ -1,0 +1,15 @@
+[Unit]
+Description=Google Drive Batch Document Converter (.docx -> .odt)
+Documentation=man:libreoffice(1)
+After=gdrive-mount.service
+Wants=gdrive-mount.service
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/while_convert --interval 600 /srv/rclone/gdrive
+Restart=always
+RestartSec=30
+Environment=CONVERT_INTERVAL=600
+
+[Install]
+WantedBy=default.target

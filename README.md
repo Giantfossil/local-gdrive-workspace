@@ -68,24 +68,32 @@ Für eine detaillierte Anleitung zur Rclone-Konfiguration (`rclone config`) und 
 
 ### Dokumenten-Konvertierung (`while_convert`)
 
-Konvertiert rekursiv alle `.docx`-Dateien (z. B. aus Google Drive Exporten) im Zielordner in `.odt` und löscht das Original nur bei erfolgreicher Erstellung:
+Konvertiert rekursiv alle `.docx`-Dateien (z. B. aus Google Drive Exporten) im Zielordner alle 10 Minuten in `.odt` und löscht das Original nur bei erfolgreicher Erstellung:
 
 ```bash
-# Aktuellen Ordner scannen
+# Periodische Schleife starten (Standard: alle 10 Minuten / 600s)
 while_convert
 
-# Bestimmten Pfad (z. B. Google Drive Ordner) scannen
-while_convert /srv/rclone/gdrive/Dokumente
+# Bestimmten Pfad oder anderes Intervall festlegen
+while_convert -i 10m /srv/rclone/gdrive/Dokumente
+
+# Nur einen einzelnen Durchlauf ausführen (ohne Schleife)
+while_convert --once /srv/rclone/gdrive
 ```
 
-### Systemd User Service Verwaltung
+### Systemd User Services Verwaltung
 
 ```bash
-# Service-Status abfragen
+# Status der Dienste abfragen
 systemctl --user status gdrive-mount.service
+systemctl --user status gdrive-convert.service
+
+# Konverter-Dienst im Hintergrund aktivieren & starten (läuft alle 10 Min.)
+systemctl --user enable --now gdrive-convert.service
 
 # Live-Logs einsehen
 journalctl --user -u gdrive-mount.service -f
+journalctl --user -u gdrive-convert.service -f
 ```
 
 ---

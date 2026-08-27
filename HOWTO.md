@@ -10,7 +10,7 @@ Folgende Pakete müssen auf dem System installiert sein:
 
 ```bash
 # EndeavourOS / Arch Linux
-sudo pacman -S rclone fuse3
+sudo pacman -S rclone fuse3 libreoffice-fresh
 ```
 
 ---
@@ -129,17 +129,50 @@ journalctl --user -u gdrive-mount.service -f
 
 ## 6. Batch-Dokumentenkonvertierung (`while_convert`)
 
-Mit dem Werkzeug [`local/bin/while_convert`](file:///home/giant/.local/src/system/gdrive/local/bin/while_convert) können exportierte `.docx`-Dateien aus Google Drive automatisiert in `.odt` umgewandelt werden:
+Mit dem Werkzeug [`local/bin/while_convert`](file:///home/giant/.local/src/system/gdrive/local/bin/while_convert) können exportierte `.docx`-Dateien (z. B. aus Google Drive) automatisiert in LibreOffice `.odt`-Dateien umgewandelt werden.
+
+### Funktionsweise der Schleife
+- **Intervall-Auslösung (alle 10 Minuten)**: Das Skript scannt das Zielverzeichnis nicht bei jedem einzelnen Datei-Event, sondern in festen Abständen (Standard: `600s` / 10 Minuten). Dadurch wird verhindert, dass unvollständig synchronisierte oder gerade bearbeitete Dateien vorzeitig konvertiert werden.
+- **Sicherheitsprüfung**: Die Originaldatei `.docx` wird erst und ausschließlich dann gelöscht, wenn die erzeugte `.odt`-Datei existiert und eine Dateigröße von mehr als 0 Byte aufweist.
+- **Lock-Schutz**: Temporäre Office-Sperrdateien (z. B. `~$Dokument.docx`) werden automatisch ignoriert.
+- **Zeitstempel-Logging**: Jeder Konvertierungsvorgang wird mit präzisem Datum und Uhrzeit protokolliert.
+
+### Manuelle Terminal-Ausführung
 
 ```bash
-# Aktuelles Verzeichnis konvertieren
+# Periodische 10-Minuten-Schleife für /srv/rclone/gdrive starten (Beenden mit Ctrl+C)
 while_convert
 
-# Bestimmten Ordner konvertieren
+# Spezifisches Verzeichnis überwachen
 while_convert /srv/rclone/gdrive/Buero
+
+# Abweichendes Intervall festlegen (z. B. alle 5 Minuten oder alle 300 Sekunden)
+while_convert -i 5m /srv/rclone/gdrive
+
+# Einmaliger Durchlauf (One-Shot) ohne Endlosschleife
+while_convert --once /srv/rclone/gdrive
+
+# Hilfe & Optionen anzeigen
+while_convert --help
 ```
 
-Das Skript prüft vor dem Löschen der Originaldatei, ob die erzeugte `.odt`-Datei erfolgreich und nicht leer ist.
+### Automatischer Hintergrundbetrieb via Systemd User Service
+
+Um die 10-Minuten-Schleife permanent im Hintergrund laufen zu lassen, kann der hinterlegte Systemd-Dienst genutzt werden:
+
+```bash
+# Dienst aktivieren und sofort starten
+systemctl --user enable --now gdrive-convert.service
+
+# Status überprüfen
+systemctl --user status gdrive-convert.service
+
+# Live-Logs der Konvertierung einsehen
+journalctl --user -u gdrive-convert.service -f
+
+# Dienst bei Bedarf stoppen
+systemctl --user stop gdrive-convert.service
+```
 
 ---
 

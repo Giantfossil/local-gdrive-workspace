@@ -1,55 +1,171 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# while_convert - Batch convert .docx files to .odt using headless LibreOffice
+# while_convert - Periodic batch converter for .docx files to .odt via LibreOffice
 # ==============================================================================
 set -euo pipefail
 
+DEFAULT_INTERVAL=600 # 10 Minuten in Sekunden
+INTERVAL="${CONVERT_INTERVAL:-$DEFAULT_INTERVAL}"
+TARGET_DIR=""
+RUN_ONCE=false
+
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [DIRECTORY]
+Usage: $(basename "$0") [OPTIONS] [DIRECTORY]
 
-Recursively searches for all .docx files in DIRECTORY (default: current directory),
-converts them to .odt format using LibreOffice, and removes the original .docx
-only after verifying the generated .odt file is non-empty.
+Periodically scans DIRECTORY (default: /srv/rclone/gdrive or current directory)
+every 10 minutes (configurable), converts all .docx files to .odt format using
+headless LibreOffice, and removes the original .docx only after verifying the
+generated .odt file is non-empty.
 
 Arguments:
-  DIRECTORY    Target directory to scan (default: .)
+  DIRECTORY            Target directory to scan (default: /srv/rclone/gdrive if exists, else .)
 
 Options:
-  -h, --help   Show this help message
+  -i, --interval SECS  Interval between scans in seconds or with suffix (e.g. 600, 10m). Default: 600 (10 min)
+  -1, --once           Run conversion pass once and exit immediately
+  -h, --help           Show this help message
+
+Environment Variables:
+  CONVERT_INTERVAL     Scan interval in seconds (default: 600)
+  RCLONE_MOUNT_POINT   Default directory fallback (default: /srv/rclone/gdrive)
 EOF
 }
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    usage
-    exit 0
+parse_interval() {
+    local val="$1"
+    if [[ "$val" =~ ^([0-9]+)m$ ]]; then
+        echo $((${BASH_REMATCH[1]} * 60))
+    elif [[ "$val" =~ ^([0-9]+)h$ ]]; then
+        echo $((${BASH_REMATCH[1]} * 3600))
+    elif [[ "$val" =~ ^([0-9]+)s?$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+    else
+        echo "[WARN] Ungültiges Intervall '$val', verwende Standardwert (${DEFAULT_INTERVAL}s)." >&2
+        echo "$DEFAULT_INTERVAL"
+    fi
+}
+
+# Parse command line options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -1|--once)
+            RUN_ONCE=true
+            shift
+            ;;
+        -i|--interval)
+            if [[ -n "${2:-}" ]]; then
+                INTERVAL="$(parse_interval "$2")"
+                shift 2
+            else
+                echo "[ERROR] Option $1 benötigt ein Argument." >&2
+                exit 1
+            fi
+            ;;
+        -*)
+            echo "[ERROR] Unbekannte Option: $1" >&2
+            usage
+            exit 1
+            ;;
+        *)
+            if [[ -z "$TARGET_DIR" ]]; then
+                TARGET_DIR="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+# Set fallback target directory
+if [[ -z "$TARGET_DIR" ]]; then
+    if [[ -d "${RCLONE_MOUNT_POINT:-/srv/rclone/gdrive}" ]]; then
+        TARGET_DIR="${RCLONE_MOUNT_POINT:-/srv/rclone/gdrive}"
+    else
+        TARGET_DIR="."
+    fi
 fi
 
 if ! command -v libreoffice &>/dev/null; then
-    echo "[ERROR] 'libreoffice' is not installed or not in PATH." >&2
+    echo "[ERROR] 'libreoffice' ist nicht installiert oder nicht im PATH auffindbar." >&2
     exit 1
 fi
-
-TARGET_DIR="${1:-.}"
 
 if [[ ! -d "$TARGET_DIR" ]]; then
-    echo "[ERROR] Directory '$TARGET_DIR' does not exist." >&2
+    echo "[ERROR] Zielverzeichnis '$TARGET_DIR' existiert nicht." >&2
     exit 1
 fi
 
-find "$TARGET_DIR" -type f -name "*.docx" -print0 | while IFS= read -r -d '' docx; do
-    dir=$(dirname "$docx")
-    base=$(basename "$docx" .docx)
-    odt="$dir/$base.odt"
+cleanup() {
+    echo -e "\n[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Konvertierungs-Schleife beendet."
+    exit 0
+}
 
-    # Konvertierung ins selbe Verzeichnis
-    libreoffice --headless --convert-to odt "$docx" --outdir "$dir"
+trap cleanup SIGINT SIGTERM SIGHUP
 
-    # Sicherheitsprüfung: Existiert die .odt und hat sie Inhalt (> 0 Byte)?
-    if [ -s "$odt" ]; then
-        rm -- "$docx"
-        echo "[OK] Konvertiert & gelöscht: $docx"
-    else
-        echo "[FEHLER] Konvertierung fehlgeschlagen für: $docx (Original bleibt erhalten)" >&2
+convert_batch() {
+    local scan_dir="$1"
+    local found=0
+    local converted=0
+    local failed=0
+
+    # Suche nach .docx Dateien (Temporäre Lock-Dateien ~$* ignorieren)
+    while IFS= read -r -d '' docx; do
+        local filename
+        filename="$(basename "$docx")"
+        if [[ "$filename" =~ ^~\$ ]]; then
+            continue
+        fi
+
+        found=$((found + 1))
+        local dir
+        local base
+        local odt
+        dir="$(dirname "$docx")"
+        base="$(basename "$docx" .docx)"
+        odt="$dir/$base.odt"
+
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Konvertiere: $docx -> $odt"
+
+        # Konvertierung ins selbe Verzeichnis
+        if libreoffice --headless --convert-to odt "$docx" --outdir "$dir" &>/dev/null; then
+            # Sicherheitsprüfung: Existiert die .odt und hat sie Inhalt (> 0 Byte)?
+            if [ -s "$odt" ]; then
+                rm -- "$docx"
+                converted=$((converted + 1))
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] [OK] Erfolgreich konvertiert & gelöscht: $docx"
+            else
+                failed=$((failed + 1))
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FEHLER] .odt Datei ist leer: $docx (Original bleibt erhalten)" >&2
+            fi
+        else
+            failed=$((failed + 1))
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] [FEHLER] LibreOffice-Konvertierung fehlgeschlagen für: $docx (Original bleibt erhalten)" >&2
+        fi
+    done < <(find "$scan_dir" -type f -name "*.docx" -print0 2>/dev/null)
+
+    if [[ $found -gt 0 ]]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] [STATUS] Durchlauf abgeschlossen: $converted/$found konvertiert ($failed Fehler)."
     fi
+}
+
+if [[ "$RUN_ONCE" == true ]]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] Einzelner Durchlauf für Verzeichnis: $TARGET_DIR"
+    convert_batch "$TARGET_DIR"
+    exit 0
+fi
+
+echo "============================================================"
+echo " while_convert - Automatische .docx -> .odt Konvertierung"
+echo " Zielverzeichnis : $TARGET_DIR"
+echo " Intervall       : Alle ${INTERVAL}s ($((INTERVAL / 60)) Minuten)"
+echo " Beenden mit     : Ctrl+C"
+echo "============================================================"
+
+while true; do
+    convert_batch "$TARGET_DIR"
+    sleep "$INTERVAL"
 done
